@@ -33,7 +33,7 @@ A comprehensive web application for managing dental clinics, appointments, and p
 
 3. Clone the repository:
    ```
-   git clone https://github.com/your-username/dental-management-system.git
+   git clone https://github.com/Dark-Shaun/Dark-Shaun-Bright_Smile_Dental_Systems.git
    cd dental-management-system
    ```
 
@@ -57,7 +57,7 @@ A comprehensive web application for managing dental clinics, appointments, and p
    SECRET_KEY=your_secret_key_here
    DEBUG=True
    ALLOWED_HOSTS=localhost,127.0.0.1
-   DB_NAME=dental_db
+   # DB_NAME=dental_db --Uncomments while performing unit testing
    DB_USER=your_postgres_user
    DB_PASSWORD=your_postgres_password
    DB_HOST=localhost
@@ -131,11 +131,10 @@ A comprehensive web application for managing dental clinics, appointments, and p
    - Add Visit
    - Schedule Appointment
 
-## Running Tests
+## Running Unit Tests
 
 To run the test suite:
 - To Run Unit Tests: `python manage.py test`
-
 
 ## Troubleshooting
 
