@@ -34,7 +34,7 @@ A comprehensive web application for managing dental clinics, appointments, and p
 3. Clone the repository:
    ```
    git clone https://github.com/Dark-Shaun/Dark-Shaun-Bright_Smile_Dental_Systems.git
-   cd dental-management-system
+   cd root-directory (cd in the folder where manage.py is present) 
    ```
 
 4. Create a virtual environment:
@@ -47,6 +47,8 @@ A comprehensive web application for managing dental clinics, appointments, and p
    - On macOS and Linux: `source venv/bin/activate`
 
 6. Install the required packages:
+   
+   ```
    pip install -r requirements.txt
    ```
 
@@ -131,13 +133,35 @@ A comprehensive web application for managing dental clinics, appointments, and p
    - Add Visit
    - Schedule Appointment
 
-## Running Unit Tests
+## Running Unit Tests (Uncomment DB_NAME=dental_db in the .env file)
 
 To run the test suite:
 - To Run Unit Tests: `python manage.py test`
 
+## Assumptions While wokring on the project
+- Conisdered Visit to be to a past thing so, if yo create a visit there is a liberty to choose the date and time before current date to make sure.
+
+## API and Work with them
+
+- End points of the API are ;
+- 'api/patients/create/'
+- 'api/doctors/create/'
+- 'api/clinics/create/'
+- 'api/clinics/<int:pk>/'
+
+
 ## Troubleshooting
 
+- If you face any similar kind of issue like the one given below:
+  ![WhatsApp Image 2024-09-21 at 20 10 17_e593e25c](https://github.com/user-attachments/assets/8672da5d-7402-46b6-ac22-2f437cbb959c)
+
+  Please comment the DB_NAME=dental_db in the .env file. The DB_NAME=dental_db will be uncommented only when performing unit testing.
+
+- If the database is already creaetd and if we are trying to re-run the complete project once again, then please drop the data schema using (drop database 'name') and 
+  restart
+
+- Tyr clearing cache and session, if you want to utilize the login functionality 
+  
 - If you encounter any issues with database migrations, try:
   ```
   python manage.py makemigrations
