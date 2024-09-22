@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{% if form.instance.pk %}Edit{% else %}Add{% endif %} Doctor</h2>
+    {% if form.errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for field, errors in form.errors.items %}
+                {% for error in errors %}
+                    <p>{{ field|title }}: {{ error }}</p>
+                {% endfor %}
+            {% endfor %}
+        </div>
+    {% endif %}
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.npi.id_for_label }}" class="form-label">NPI</label>
+                <input type="text" class="form-control {% if form.npi.errors %}is-invalid{% endif %}" id="{{ form.npi.id_for_label }}" name="{{ form.npi.name }}" value="{{ form.npi.value|default:'' }}" required pattern="\d{10}" maxlength="10">
+                <div class="invalid-feedback">
+                    {% for error in form.npi.errors %}
+                        {{ error }}
+                    {% empty %}
+                        Please enter a valid 10-digit NPI number.
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
+                <input type="text" class="form-control {% if form.name.errors %}is-invalid{% endif %}" id="{{ form.name.id_for_label }}" name="{{ form.name.name }}" value="{{ form.name.value|default:'' }}" required>
+                <div class="invalid-feedback">
+                    {% for error in form.name.errors %}
+                        {{ error }}
+                    {% empty %}
+                        Please enter the doctor's name.
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+                <input type="email" class="form-control {% if form.email.errors %}is-invalid{% endif %}" id="{{ form.email.id_for_label }}" name="{{ form.email.name }}" value="{{ form.email.value|default:'' }}" required>
+                <div class="invalid-feedback">
+                    {% for error in form.email.errors %}
+                        {{ error }}
+                    {% empty %}
+                        Please enter a valid email address.
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                <input type="tel" class="form-control {% if form.phone_number.errors %}is-invalid{% endif %}" id="{{ form.phone_number.id_for_label }}" name="{{ form.phone_number.name }}" value="{{ form.phone_number.value|default:'' }}" required pattern="\d{3}-\d{3}-\d{4}" placeholder="123-456-7890">
+                <div class="invalid-feedback">
+                    {% for error in form.phone_number.errors %}
+                        {{ error }}
+                    {% empty %}
+                        Please enter a valid phone number in the format 123-456-7890.
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 mb-3">
+                <label for="{{ form.specialties.id_for_label }}" class="form-label">Specialties</label>
+                {{ form.specialties }}
+                <small class="form-text text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple procedures.</small>
+            </div>
+        </div>
+        <div class="row mt-3">
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary rounded-pill">Save</button>
+                <a href="{% url 'doctor_list' %}" class="btn btn-secondary rounded-pill">Cancel</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Phone number formatting
+    document.getElementById('{{ form.phone_number.id_for_label }}').addEventListener('input', function (e) {
+        var x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+        e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '');
+    });
+
+    // Bootstrap form validation
+    (function () {
+        'use strict'
+        var forms = document.querySelectorAll('.needs-validation')
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+                    form.classList.add('was-validated')
+
+                    // Email validation
+                    var emailInput = document.getElementById('{{ form.email.id_for_label }}');
+                    var emailValue = emailInput.value;
+                    if (!emailValue.includes('@') || !emailValue.includes('.')) {
+                        event.preventDefault();
+                        showError('Invalid email address. Please include "@" and "." in the email.');
+                    }
+                }, false)
+            })
+    })()
+
+    // Function to show error modal
+    function showError(message) {
+        var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        document.getElementById('errorModalBody').textContent = message;
+        errorModal.show();
+    }
+
+    // Check for form errors on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        var formErrors = document.querySelector('.alert-danger');
+        if (formErrors) {
+            showError(formErrors.textContent.trim());
+        }
+    });
+</script>
+{% endblock %}

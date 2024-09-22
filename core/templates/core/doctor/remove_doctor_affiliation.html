@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Confirm Removal</h2>
+    <p>Are you sure you want to remove the affiliation of Dr. {{ object.doctor.name }} from {{ object.clinic.name }}?</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Confirm Removal</button>
+        <a href="{% url 'clinic_detail' pk=object.clinic.pk %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

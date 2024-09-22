@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Confirm Appointment Cancellation</h2>
+    <p>Are you sure you want to cancel this appointment?</p>
+    <p><strong>Date:</strong> {{ object.date }}</p>
+    <p><strong>Time:</strong> {{ object.time_slot }}</p>
+    <p><strong>Patient:</strong> {{ object.patient.name }}</p>
+    <p><strong>Doctor:</strong> {{ object.doctor.name }}</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger rounded-pill">Confirm Cancellation</button>
+        <a href="{% url 'patient_detail' object.patient.pk %}" class="btn btn-secondary rounded-pill">Go Back</a>
+    </form>
+</div>
+{% endblock %}

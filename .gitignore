@@ -1,0 +1,32 @@
+# Python
+*.pyc
+__pycache__/
+
+# Django
+*.log
+db.sqlite3
+
+# Virtual Environment
+venv/
+
+# Environment variables
+.env
+
+# IDE specific files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+
+# Static files collection
+staticfiles/
+
+# Media files
+media/
+
+# Database backups
+*.bak
+
+# Local development settings
+local_settings.py

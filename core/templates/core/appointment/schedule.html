@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Schedule Appointment</h2>
+    {% if patient %}
+        <p class="mb-3">Scheduling for: {{ patient.name }}</p>
+    {% endif %}
+    <form id="appointmentForm" class="needs-validation" novalidate>
+        {% csrf_token %}
+        {% if not patient %}
+        <div class="mb-3">
+            <label for="patient" class="form-label">Patient:</label>
+            <select class="form-select" id="patient" name="patient" required>
+                <option value="">Select a patient</option>
+                {% for patient in patients %}
+                    <option value="{{ patient.id }}">{{ patient.name }}</option>
+                {% endfor %}
+            </select>
+            <div class="invalid-feedback">
+                Please select a patient.
+            </div>
+        </div>
+        {% else %}
+        <input type="hidden" name="patient_id" value="{{ patient.id }}">
+        {% endif %}
+        <div class="mb-3">
+            <label for="procedure" class="form-label">Procedure:</label>
+            <select class="form-select" id="procedure" name="procedure" required>
+                <option value="">Select a procedure</option>
+                {% for procedure in procedures %}
+                    <option value="{{ procedure.id }}">{{ procedure.name }}</option>
+                {% endfor %}
+            </select>
+            <div class="invalid-feedback">
+                Please select a procedure.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="clinic" class="form-label">Clinic:</label>
+            <select class="form-select" id="clinic" name="clinic" required disabled>
+                <option value="">Select a clinic</option>
+            </select>
+            <div class="invalid-feedback">
+                Please select a clinic.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="doctor" class="form-label">Doctor:</label>
+            <select class="form-select" id="doctor" name="doctor" required disabled>
+                <option value="">Select a doctor</option>
+            </select>
+            <div class="invalid-feedback">
+                Please select a doctor.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="date" class="form-label">Date:</label>
+            <input type="date" class="form-control" id="date" name="date" required disabled>
+            <div class="invalid-feedback">
+                Please select a date.
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="time_slot" class="form-label">Time Slot:</label>
+            <select class="form-select" id="time_slot" name="time_slot" required disabled>
+                <option value="">Select a time slot</option>
+            </select>
+            <div class="invalid-feedback">
+                Please select a time slot.
+            </div>
+            <small class="form-text text-muted">
+                Note: Numbers like 9, 13 represent 1-hour slots (e.g., 9 = 9:00 AM to 10:00 AM, 13 = 1:00 PM to 2:00 PM)
+            </small>
+        </div>
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary rounded-pill" disabled>Book Appointment</button>
+            <a href="{% url 'patient_detail' patient.id %}" class="btn btn-secondary rounded-pill">Back</a>
+        </div>
+    </form>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    const csrftoken = $('[name=csrfmiddlewaretoken]').val();
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    $('#date').attr('min', tomorrow.toISOString().split('T')[0]);
+
+    $('#procedure').change(function() {
+        const procedureId = $(this).val();
+        if (procedureId) {
+            $.post('{% url "appointment_schedule" %}', {
+                action: 'get_clinics',
+                procedure_id: procedureId,
+                csrfmiddlewaretoken: csrftoken
+            }, function(data) {
+                $('#clinic').empty().append('<option value="">Select a clinic</option>');
+                data.clinics.forEach(function(clinic) {
+                    $('#clinic').append(`<option value="${clinic.id}">${clinic.name}</option>`);
+                });
+                $('#clinic').prop('disabled', false);
+            });
+        } else {
+            $('#clinic').prop('disabled', true);
+        }
+        $('#doctor, #date, #time_slot').prop('disabled', true).empty().append('<option value="">Select</option>');
+    });
+
+    $('#clinic').change(function() {
+        const clinicId = $(this).val();
+        const procedureId = $('#procedure').val();
+        if (clinicId && procedureId) {
+            $.post('{% url "appointment_schedule" %}', {
+                action: 'get_doctors',
+                procedure_id: procedureId,
+                clinic_id: clinicId,
+                csrfmiddlewaretoken: csrftoken
+            }, function(data) {
+                $('#doctor').empty().append('<option value="">Select a doctor</option>');
+                data.doctors.forEach(function(doctor) {
+                    $('#doctor').append(`<option value="${doctor.id}">${doctor.name}</option>`);
+                });
+                $('#doctor').prop('disabled', false);
+            });
+        } else {
+            $('#doctor').prop('disabled', true);
+        }
+        $('#date, #time_slot').prop('disabled', true).empty().append('<option value="">Select</option>');
+    });
+
+    $('#doctor').change(function() {
+        $('#date').prop('disabled', false);
+        $('#time_slot').prop('disabled', true).empty().append('<option value="">Select a time slot</option>');
+    });
+
+    $('#date').change(function() {
+        const date = $(this).val();
+        const doctorId = $('#doctor').val();
+        const clinicId = $('#clinic').val();
+        if (date && doctorId && clinicId) {
+            $.post('{% url "appointment_schedule" %}', {
+                action: 'get_slots',
+                clinic_id: clinicId,
+                doctor_id: doctorId,
+                date: date,
+                csrfmiddlewaretoken: csrftoken
+            }, function(data) {
+                $('#time_slot').empty().append('<option value="">Select a time slot</option>');
+                data.slots.forEach(function(slot) {
+                    $('#time_slot').append(`<option value="${slot.id}">${slot.start_time}</option>`);
+                });
+                $('#time_slot').prop('disabled', false);
+            });
+        } else {
+            $('#time_slot').prop('disabled', true);
+        }
+    });
+
+    $('#time_slot').change(function() {
+        $('button[type="submit"]').prop('disabled', false);
+    });
+
+    $('#appointmentForm').submit(function(e) {
+        e.preventDefault();
+        if (this.checkValidity() === false) {
+            e.stopPropagation();
+            $(this).addClass('was-validated');
+            return;
+        }
+        const formData = {
+            action: 'book_appointment',
+            patient_id: '{{ patient.id }}' || $('#patient').val(),
+            procedure_id: $('#procedure').val(),
+            clinic_id: $('#clinic').val(),
+            doctor_id: $('#doctor').val(),
+            date: $('#date').val(),
+            time_slot_id: $('#time_slot').val(),
+            csrfmiddlewaretoken: csrftoken
+        };
+
+        $.post('{% url "appointment_schedule" %}', formData, function(data) {
+            if (data.success) {
+                window.location.href = "{% url 'patient_detail' patient.id %}";
+            } else {
+                console.error(data.message);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

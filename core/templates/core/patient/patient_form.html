@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">{% if form.instance.pk %}Edit{% else %}Add{% endif %} Patient</h2>
+    {% if form.errors %}
+        <div class="alert alert-danger" role="alert">
+            {% for field, errors in form.errors.items %}
+                <p>{{ field|title }}: {{ errors.0 }}</p>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <form method="post" class="needs-validation" novalidate>
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.name.id_for_label }}" class="form-label">Name</label>
+                {{ form.name|add_class:"form-control" }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.date_of_birth.id_for_label }}" class="form-label">Date of Birth</label>
+                {{ form.date_of_birth|add_class:"form-control"|attr:"type:date"|attr:"required"|attr:"max:{% now 'Y-m-d' %}" }}
+                <div class="invalid-feedback">
+                    Please enter a valid date of birth not later than today.
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.gender.id_for_label }}" class="form-label">Gender</label>
+                {{ form.gender|add_class:"form-select" }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.phone_number.id_for_label }}" class="form-label">Phone Number</label>
+                {{ form.phone_number|add_class:"form-control"|attr:"pattern:^[0-9]{3}-[0-9]{3}-[0-9]{4}$"|attr:"placeholder:xxx-xxx-xxxx"|attr:"maxlength:12" }}
+                <div class="invalid-feedback">
+                    Please enter a valid phone number in the format xxx-xxx-xxxx.
+                </div>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.address.id_for_label }}" class="form-label">Address</label>
+            {{ form.address|add_class:"form-control"|attr:"rows:3" }}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.ssn_last_4.id_for_label }}" class="form-label">SSN (Last 4 digits)</label>
+            {{ form.ssn_last_4|add_class:"form-control"|attr:"pattern:^[0-9]{4}$"|attr:"maxlength:4"|attr:"minlength:4"|attr:"placeholder:xxxx" }}
+            <div class="invalid-feedback">
+                Please enter exactly 4 digits for the last 4 digits of SSN.
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary rounded-pill">Save</button>
+        <a href="{% url 'patient_list' %}" class="btn btn-secondary rounded-pill">Cancel</a>
+    </form>
+</div>
+
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="errorModalLabel">Error</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="errorModalBody">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Example starter JavaScript for disabling form submissions if there are invalid fields
+    (function () {
+        'use strict'
+
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        var forms = document.querySelectorAll('.needs-validation')
+
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+
+    // Phone number formatting
+    document.getElementById('{{ form.phone_number.id_for_label }}').addEventListener('input', function (e) {
+        var x = e.target.value.replace(/\D/g, '').match(/(\d{0,3})(\d{0,3})(\d{0,4})/);
+        e.target.value = !x[2] ? x[1] : x[1] + '-' + x[2] + (x[3] ? '-' + x[3] : '');
+    });
+
+    // SSN last 4 digits validation
+    document.getElementById('{{ form.ssn_last_4.id_for_label }}').addEventListener('input', function (e) {
+        e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+    });
+
+    // Function to show error modal
+    function showError(message) {
+        var errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+        document.getElementById('errorModalBody').textContent = message;
+        errorModal.show();
+    }
+
+    // Check for form errors on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        var formErrors = document.querySelector('.alert-danger');
+        if (formErrors) {
+            showError(formErrors.textContent.trim());
+        }
+
+        // Set max date for date of birth to today
+        var today = new Date().toISOString().split('T')[0];
+        document.getElementById('{{ form.date_of_birth.id_for_label }}').setAttribute('max', today);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="h3 mb-4">Add Doctor Affiliation</h2>
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="h5 mb-3">Doctor Details</h4>
+                <div class="form-group mb-3">
+                    {{ form.doctor.label_tag }} <span class="text-danger">*</span>
+                    {% render_field form.doctor class="form-control" %}
+                    <small class="form-text text-muted">If no doctor is available, you may need to add more doctors to the system.</small>
+                </div>
+                <div class="form-group mb-3">
+                    {{ form.office_address.label_tag }} <span class="text-danger">*</span>
+                    {% render_field form.office_address class="form-control" rows="3" %}
+                </div>
+            </div>
+            <div class="col-md-6">
+                <h4 class="h5 mb-3">Working Schedule</h4>
+                <p class="text-muted"><small>Note: Each time slot represents a one-hour working period. For example, 9:00 means 9:00 AM to 10:00 AM, and 13:00 means 1:00 PM to 2:00 PM.</small></p>
+                {{ time_slot_formset.management_form }}
+                
+                {{% for day, day_name in time_slot_formset.form.base_fields.day_of_week.choices %}
+                {% if day <= 4 %}  <!-- Show Monday (0) to Friday (4) -->
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="h6 mb-0">{{ day_name }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" name="form-{{ day }}-day_of_week" value="{{ day }}">
+                            <div class="btn-group-toggle" data-toggle="buttons">
+                                {% for time_value, time_label in time_slot_formset.form.base_fields.start_time.choices %}
+                                    <label class="btn btn-outline-primary m-1 rounded-pill">
+                                        <input type="checkbox" name="form-{{ day }}-start_time" value="{{ time_value }}">
+                                        {{ time_label }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+            </div>
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary rounded-pill">Save Affiliation</button>
+            <a href="{% url 'clinic_detail' pk=view.kwargs.clinic_pk %}" class="btn btn-secondary rounded-pill ml-2">Cancel</a>
+        </div>
+        
+    </form>
+
+    {% if object %}  <!-- Only show remove button if editing an existing affiliation -->
+    <form method="post" action="{% url 'remove_doctor_affiliation' clinic_pk=object.clinic.pk pk=object.pk %}" class="mt-3">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger rounded-pill" onclick="return confirm('Are you sure you want to remove this doctor affiliation?');">Remove Affiliation</button>
+    </form>
+    {% endif %}
+</div>
+
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        // Handle checkbox changes
+        $('.btn-group-toggle input[type="checkbox"]').change(function() {
+            if ($(this).is(':checked')) {
+                $(this).parent().addClass('active');
+            } else {
+                $(this).parent().removeClass('active');
+            }
+        });
+
+        // Remove the first empty option from the doctor dropdown
+        $("#{{ form.doctor.id_for_label }} option:first").remove();
+    });
+</script>
+{% endblock extra_js %}

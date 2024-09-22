@@ -1,0 +1,14 @@
+django
+django_bootstrap5
+psycopg2-binary==2.9.9
+python-dotenv==1.0.0
+djangorestframework==3.14.0
+django-crispy-forms==2.1
+crispy-bootstrap4==2023.1
+Pillow==10.1.0
+django-allauth==0.59.0
+django-bootstrap-datepicker-plus==5.0.4
+django-bootstrap4==23.2
+django-widget-tweaks==1.5.0
+reportlab==4.0.8
+python-dotenv==1.0.0
